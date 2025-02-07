@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "729994676736",
+    "project_id": "safetynamur",
+    "storage_bucket": "safetynamur.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:729994676736:android:16d99f65b8e45ade64a6e5",
+        "android_client_info": {
+          "package_name": "com.example.flutter_namur_s"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkgfSQpj54qfd2pmteHJD7U5EECUfxFoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:729994676736:android:7ede7220e3931a1564a6e5",
+        "android_client_info": {
+          "package_name": "com.example.flutter_namur_safety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkgfSQpj54qfd2pmteHJD7U5EECUfxFoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
