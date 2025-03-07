@@ -6,14 +6,37 @@ import 'firstpage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
+
+
+
  // La page de connexion
 
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialise Firebase
+  await Firebase.initializeApp(); 
+  
   runApp(const MyApp());
+  
+}
+Future<void> requestNotificationPermission() async {
+  await Future.delayed(Duration(seconds: 2)); // Délai avant la demande
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.denied) {
+    print("L'utilisateur a refusé les notifications.");
+  } else {
+    print("Notifications autorisées !");
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -27,6 +50,10 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+
+
 
 class AuthWrapper extends StatelessWidget {
   @override
@@ -45,6 +72,8 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
+
+
 
 
 
@@ -97,6 +126,13 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () async {
+                  var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous n\'êtes pas connecté à Internet.')),
+      );
+      return; // Arrêter la connexion si pas d'Internet
+    }
                   final email = emailController.text.trim();
                   final password = passwordController.text.trim();
 
@@ -125,7 +161,7 @@ class LoginPage extends StatelessWidget {
                         );
                       }
                     } on FirebaseAuthException catch (e) {
-                      String errorMessage = 'Erreur de connexion.';
+                      String errorMessage = 'Email ou mot de passe incorrect .';
                       if (e.code == 'user-not-found') {
                         errorMessage = 'Utilisateur introuvable.';
                       } else if (e.code == 'wrong-password') {
@@ -183,11 +219,14 @@ class LoginPage extends StatelessWidget {
 }
 
 
+
+
 class CreateAccountPage extends StatelessWidget {
   const CreateAccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController pseudoController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
@@ -209,6 +248,15 @@ class CreateAccountPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
+            TextField(
+              controller: pseudoController,
+              decoration: const InputDecoration(
+                labelText: 'Pseudo',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
@@ -241,60 +289,84 @@ class CreateAccountPage extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () async {
+                final pseudo = pseudoController.text.trim();
                 final email = emailController.text.trim();
                 final password = passwordController.text.trim();
                 final confirmPassword = confirmPasswordController.text.trim();
 
-                if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                if (pseudo.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Veuillez remplir tous les champs.')),
                   );
-                } else if (password != confirmPassword) {
+                  return;
+                }
+
+                if (password != confirmPassword) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Les mots de passe ne correspondent pas.')),
                   );
-                } else {
-                  try {
-                    final userCredential = await FirebaseAuth.instance
-                        .createUserWithEmailAndPassword(email: email, password: password);
+                  return;
+                }
 
-                    if (userCredential.user != null) {
-                      await userCredential.user!.sendEmailVerification();
+                try {
+                  // Vérifier si le pseudo est déjà utilisé
+                  final existingUser = await FirebaseFirestore.instance
+                      .collection('users')
+                      .where('pseudo', isEqualTo: pseudo)
+                      .get();
 
-                      // Ajouter l'utilisateur dans Firestore
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userCredential.user!.uid)
-                          .set({
-                        'email': email,
-                        'createdAt': DateTime.now(),
-                      });
+                  if (existingUser.docs.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Ce pseudo est déjà pris.')),
+                    );
+                    return;
+                  }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Compte créé ! Vérifiez votre e-mail pour continuer.')),
-                      );
+                  // Créer un compte utilisateur avec Firebase Auth
+                  final userCredential = await FirebaseAuth.instance
+                      .createUserWithEmailAndPassword(email: email, password: password);
 
-                      Navigator.pop(context); // Retour à la page précédente
-                    }
-                  } on FirebaseAuthException catch (e) {
-                    String errorMessage = 'Erreur de création du compte.';
-                    if (e.code == 'email-already-in-use') {
-                      errorMessage = 'Cet e-mail est déjà utilisé.';
-                    } else if (e.code == 'weak-password') {
-                      errorMessage = 'Le mot de passe est trop faible.';
-                    } else if (e.code == 'invalid-email') {
-                      errorMessage = 'L\'adresse e-mail est invalide.';
-                    }
+                  if (userCredential.user != null) {
+                    await userCredential.user!.sendEmailVerification();
+
+                    // Ajouter l'utilisateur dans Firestore
+                    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userCredential.user!.uid)
+        .set({
+      'pseudo': pseudo,  // Ajout du pseudo ici
+      'email': email,
+      'createdAt': DateTime.now(),
+    });
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(errorMessage)),
+                      const SnackBar(
+                          content: Text('Compte créé ! Vérifiez votre e-mail pour continuer.')),
                     );
+
+                    Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => LoginPage()),
+);
+// Retour à la page précédente
                   }
+                } on FirebaseAuthException catch (e) {
+                  String errorMessage = 'Erreur de création du compte.';
+                  if (e.code == 'email-already-in-use') {
+                    errorMessage = 'Cet e-mail est déjà utilisé.';
+                  } else if (e.code == 'weak-password') {
+                    errorMessage = 'Le mot de passe est trop faible.';
+                  } else if (e.code == 'invalid-email') {
+                    errorMessage = 'L\'adresse e-mail est invalide.';
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(errorMessage)),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 11, 72, 122),
+                backgroundColor: const Color.fromARGB(255, 11, 72, 122),
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

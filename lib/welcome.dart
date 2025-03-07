@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'connexion.dart'; 
+import 'firstpage.dart';
 import 'dart:ui' as ui;
 // Importez la page de connexion ici
 
 
 import 'package:flutter/material.dart';
-
 import 'package:flutter/material.dart';
 
 
@@ -59,7 +59,7 @@ class _AnimatedTextPageState extends State<AnimatedTextPage> with SingleTickerPr
     Future.delayed(Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyApp()), // Remplacer par ta page MyApp
+        MaterialPageRoute(builder: (context) => MapPage()), // Remplacer par ta page MyApp
       );
     });
   }

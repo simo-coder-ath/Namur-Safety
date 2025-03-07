@@ -30,8 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-
+  
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -42,6 +42,10 @@ dependencies:
   firebase_auth: ^4.16.0
   intl: ^0.18.0
   connectivity_plus: ^3.0.3
+  geolocator: ^10.1.0
+  firebase_messaging: ^14.9.4
+  
+
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +75,8 @@ flutter:
     - lib/assets/images/dislike.png
     - lib/assets/images/Namur-safety-_1_.ico
     - lib/assets/images/log_app.PNG
+    - lib/assets/images/person.png
+    - lib/assets/images/urgent.png
 
   fonts:
     - family: YangBagus

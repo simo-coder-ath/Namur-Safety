@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Ajout des autorisations de localisation -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Nous utilisons votre position pour afficher votre emplacement sur la carte.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Nous utilisons votre position pour vous fournir une meilleure expérience.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Nous avons besoin de votre position pour vous fournir une meilleure expérience sur l'application.</string>
+
 </dict>
 </plist>
+
